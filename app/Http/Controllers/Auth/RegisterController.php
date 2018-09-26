@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use Illuminate\Http\Request;
+use Mail;
 
 class RegisterController extends Controller
 {
@@ -71,5 +73,27 @@ class RegisterController extends Controller
             'password' => Hash::make($data['password']),
             'type' => config('constants.userType.default')
         ]);
+    }
+
+    /**
+     * The user has been registered.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  mixed  $user
+     * @return mixed
+     */
+    protected function registered(Request $request, $user)
+    {
+        // 3 args: Template, data, fn
+        $data = [
+            'name' => $user->name,
+            'email' => $user->email
+        ];
+
+        Mail::send('emails.welcome', $data, function($email) use ($data) {
+            $email->from('no-reply@zeolearn.com');
+            $email->to($data['email']);
+            $email->subject('Welcome Home '.$data['name']);
+        });
     }
 }
